@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  phone     String?
+  avatarUrl String?
+
+  trips         Trip[]
+  tripMembers   TripMember[]
+  billsPaid     Bill[] @relation("BillPayer")
+  billSplits    BillSplit[]
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt 
+}
+
+model Trip {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+
+  startDate   DateTime
+  endDate     DateTime
+
+  ownerId     String
+  owner       User @relation(fields: [ownerId], references: [id])
+
+  members     TripMember[]
+  places      Place[]
+  bills       Bill[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model TripMember {
+  id        String   @id @default(uuid())
+  tripId    String
+  userId    String
+  role      String   @default("member")
+
+  trip      Trip     @relation(fields: [tripId], references: [id], onDelete:Cascade)
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([tripId, userId]) // กัน user ซ้ำใน trip
+}
+
+model Place {
+  id String @id @default(uuid())
+  tripId    String
+
+  name      String
+  location  String?
+  lat       Float?
+  lng       Float?
+
+  trip      Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+}
+
+model Bill {
+  id          String   @id @default(uuid())
+
+  tripId      String
+  payerId     String
+
+  title       String
+  amount      Float
+
+  createdAt   DateTime @default(now())
+
+  trip        Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  payer       User @relation("BillPayer", fields: [payerId], references: [id])
+
+  splits      BillSplit[]
+}
+
+model BillSplit {
+  id          String   @id @default(uuid())
+
+  billId      String
+  userId      String
+
+  amount      Float
+
+  bill        Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime @default(now())
+}

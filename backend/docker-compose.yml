@@ -1,0 +1,12 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: travel-db
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: travel_app
+
+    ports:
+      - "5433:5432"

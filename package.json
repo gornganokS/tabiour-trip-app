@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@prisma/studio": "^0.511.0"
+  }
+}
